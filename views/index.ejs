@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html class="full" lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Image management system</title>
+    <%- include component/common_header.ejs %>
+    <!--customize css-->
+    <link href="css/customize/index.css" rel="stylesheet"/>
+    <!--customize js-->
+    <script src="js/customize/index.js" type="application/javascript"></script>
+</head>
+
+<body page="dashboard">
+
+<%- include component/navigation.ejs %>
+
+<div class="main main-bg">
+    <!--    Change the image source '/images/video_bg.jpg')" with your favourite image.     -->
+
+    <div class="cover black" data-color="black"></div>
+
+    <!--   You can change the black color for the filter with those colors: blue, green, red, orange       -->
+
+    <div class="container center-container">
+        <div class="content">
+            <h4 class="motto"></h4>
+            <div class="subscribe">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-8 col-lg-offset-2">
+                            <div class="input-group">
+                                <input id="search-input" type="text" class="input-lg form-control transparent"
+                                       placeholder="Image name..." value="">
+                                <span class="input-group-btn">
+                                    <button id="search-input-button" class="btn btn-lg btn-ghost" type="button">Search</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

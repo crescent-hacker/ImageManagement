@@ -1,0 +1,36 @@
+<!--Move to-->
+<div class="modal fade" id="move-to-modal" tabindex="-1" role="dialog" aria-labelledby="moveToModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true" onclick="loadImageList()">&times;</span></button>
+                <h4 class="modal-title" id="modal-label">Move to path</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-2">
+                        <b>Current path:</b>&nbsp;&nbsp;
+                    </div>
+                    <div class="col-lg-10">
+                        <span id="moveto-current-path-filling" style="color: #a16510">/</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-2">
+                        <b>Target path:</b>&nbsp;&nbsp;
+                    </div>
+                    <div class="col-lg-10">
+                        <span id="moveto-target-path-filling" style="color: #1aa3c3">/</span>                    </div>
+                </div>
+                <hr>
+                <div id="simple-tree" class="fancytree-colorize-hover fancytree-fade-expander white-bg-tree"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-moveto-button" type="button" class="btn btn-default" data-dismiss="modal">Close
+                </button>
+                <button id="confirm-moveto-button" type="button" data-dismiss="modal" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

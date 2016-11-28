@@ -1,0 +1,21 @@
+.brand-color{
+    color: #49be45 !important;
+    font-size: 25px;
+}
+.brand-color:hover{
+    color: #58f955 !important;
+}
+.top-nav>.active>a{
+    color:white;
+    background-color: black;
+}
+.side-nav {
+    /*transition: all 0.1s ease-in-out 0.1s;*/
+}
+#wrapper{
+    /*transition: all 0.1s ease-in-out 0.1s;*/
+}
+#sidebar-toggle-button{
+    cursor: pointer;
+    margin-left: -5px;
+}

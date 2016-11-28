@@ -1,0 +1,35 @@
+.image-check {
+    padding:12px;
+    margin-top: 2px;
+}
+
+.image-check:hover {
+    cursor: pointer;
+}
+
+.upload-block-font {
+    font-weight: 400;
+    font-size: 1.5em;
+    color: darkgrey;
+}
+
+/*rewrite boostrap*/
+@media (min-width: 768px) {
+    .modal-dialog {
+        width: 910px;
+        margin: 30px auto;
+    }
+}
+
+.page-header {
+    margin-top: 20px;
+}
+
+#current-path-showcase {
+    color: #545454;
+}
+
+.edit-title-input{
+    height:20px;
+    font-size:1em;
+}

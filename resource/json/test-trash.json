@@ -1,0 +1,12 @@
+[
+  {"title": "Fruit", "expanded": true, "folder": true, "children": [
+    {"title": "Apple", "folder": true, "children": [
+      {"title": "Fuji"}
+    ]},
+    {"title": "Orange", "expanded": true, "folder": true, "children": [
+      {"title": "Sunkis", "folder": true,"children": [
+        {"title": "Blood Sunkis", "lazy": true}
+      ]}
+    ]}
+  ]}
+]

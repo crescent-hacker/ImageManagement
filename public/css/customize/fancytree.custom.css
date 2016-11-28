@@ -1,0 +1,83 @@
+/* Define custom width and alignment of table columns */
+#treetable {
+    table-layout: fixed;
+}
+
+#treetable tr td:nth-of-type(1) {
+    text-align: right;
+}
+
+#treetable tr td:nth-of-type(2) {
+    text-align: center;
+}
+
+#treetable tr td:nth-of-type(3) {
+    min-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* rewrite default fancy tree start */
+#tree > ul {
+    color: #e9e9e9 !important;
+    background-color: #222222 !important;
+}
+
+#tree {
+    margin-top: 10px;
+}
+
+span.fancytree-title {
+    color: #e9e9e9 !important;
+}
+.white-bg-tree span.fancytree-title {
+    color: #242424 !important;
+}
+
+.side-nav {
+    /*overflow-y: hidden;*/
+    min-width: 225px;
+    max-width: 400px;
+}
+
+ul.fancytree-container {
+    border: 0px;
+    padding: 0px;
+}
+
+/* rewrite default fancy tree end */
+
+hr.grey-line {
+    border-top: 1px solid #787878;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+.tree-title {
+    color: #f9f9f9;
+    font-size: 18px;
+    margin-left: 15px;
+    margin-bottom: 10px;
+}
+
+
+/* complex tree */
+.ui-menu {
+    width: 220px;
+    font-size: 63%;
+    z-index: 9999;
+}
+.ui-menu kbd { /* Keyboard shortcuts for ui-contextmenu titles */
+    float: right;
+}
+/* custom alignment (set by 'renderColumns'' event) */
+td.alignRight {
+    text-align: right;
+}
+td.alignCenter {
+    text-align: center;
+}
+td input[type=input] {
+    width: 40px;
+}

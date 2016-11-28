@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Image management system</title>
+
+    <!--common resource-->
+    <%- include component/common_header.ejs %>
+    <!--customize css-->
+    <link href="css/template/card-design.css" rel="stylesheet">
+    <link href="css/template/plugins/dropzone.css" rel="stylesheet">
+    <link href="vendor/lightbox/ekko-lightbox.min.css" rel="stylesheet">
+    <link href="css/customize/image-management.css" rel="stylesheet">
+    <!--customize js-->
+    <script src="js/template/plugins/dropzone/dropzone.js"></script>
+    <script src="vendor/lightbox/ekko-lightbox.js"></script>
+    <script src="js/customize/image_management.js"></script>
+</head>
+
+<body page="image_management">
+
+<div id="wrapper">
+
+    <div id="page-wrapper">
+        <!-- Navigation -->
+        <%- include component/navigation.ejs %>
+        <!-- sidebar -->
+        <%- include component/tree.ejs %>
+        <div class="container-fluid">
+
+            <!-- Page Heading -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">
+                        Image management
+                    </h1>
+                    <!--<ol class="breadcrumb">-->
+                    <!--<li>-->
+                    <!--<i class="fa fa-home"></i> <a href="/"> Home</a>-->
+                    <!--</li>-->
+                    <!--<li class="active">-->
+                    <!--<i class="fa fa-dashboard"></i> Image Management-->
+                    <!--</li>-->
+                    <!--</ol>-->
+                </div>
+            </div>
+            <!-- /.row -->
+            <!--current path-->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="col-lg-1">
+                        <b>Path:</b>
+                    </div>
+                    <div class="col-lg-11">
+                        <span id="current-path-showcase">&nbsp;/</span>
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <!--tool bar-->
+            <div class="row">
+                <div class="col-lg-12">
+                    <!--sort type-->
+                    <div class="col-lg-1" style="margin-top:6px">
+                        <b>Sort by:</b>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-default">Date</button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-default">Size</button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-default">Name</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--search bar-->
+                    <div class="col-lg-7 col-lg-offset-1">
+                        <div class="input-group">
+                            <input id="search-input" type="text" class="form-control" placeholder="Search by image name or category name...">
+                            <span class="input-group-btn">
+                                <button id="search-button" class="btn btn-primary" type="button">Search</button>
+                             </span>
+                        </div><!-- /input-group -->
+                    </div><!-- /.col-lg-6 -->
+                </div>
+            </div>
+
+            <!--operation-->
+            <br>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="col-lg-1" style="margin-top:6px">
+                        <b>Action:</b>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                            <div class="btn-group" role="group">
+                                <button id="upload-button" type="button" class="btn btn-primary" data-toggle="modal"
+                                        data-target="#upload-modal"><span class="glyphicon glyphicon-upload"
+                                                                          aria-hidden="true"></span> Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-lg-offset-1">
+                        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                            <div class="btn-group" role="group">
+                                <button id="check-all-button" type="button" class="btn btn-success"><span
+                                            class="glyphicon glyphicon-check" aria-hidden="true"></span> Select all
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button id="move-trash-button" type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"
+                                                                                   aria-hidden="true"></span> Move trash
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-warning"><span
+                                            class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+                                    Download
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button id="move-to-button" type="button" class="btn btn-info" data-toggle="modal"
+                                        data-target="#move-to-modal"><span class="glyphicon glyphicon-move"
+                                                                           aria-hidden="true"></span> MoveTo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <!--notification-->
+            <!--<div class="row">-->
+            <!--<div class="col-lg-12">-->
+            <!--<div class="alert alert-info alert-dismissable">-->
+            <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>-->
+            <!--<i class="fa fa-info-circle"></i> <strong>Like SB Admin?</strong> Try out <a-->
+            <!--href="http://startbootstrap.com/template-overviews/sb-admin-2" class="alert-link">SB-->
+            <!--Admin 2</a> for additional features!-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--image list-->
+            <div class="row">
+                <div id="image-list" class="col-lg-12">
+                    <!--gallery-->
+                </div>
+            </div>
+            <!-- /.row -->
+
+        </div>
+        <!-- /.container-fluid -->
+
+    </div>
+    <!-- /#page-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
+<!--Upload Modal-->
+<div class="modal fade" id="upload-modal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true" onclick="loadImageList()">&times;</span></button>
+                <h4 class="modal-title" id="modal-label">Upload path: <span id="upload-path-filling"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div id="dropzone">
+                    <form action="/upload" class="dropzone needsclick dz-clickable" id="upload"
+                          enctype="multipart/form-data" method="post">
+
+                        <div class="dz-message needsclick">
+                            <div class="upload-block-font">Drop files here or click to upload.</div>
+                            <!--<br>-->
+                            <!--<span class="note needsclick">(This is just a demo dropzone. Selected files are <strong>not</strong> actually uploaded.)</span>-->
+                            <!--<input type="file" name="file" multiple />-->
+                            <!--<input type="submit" value="test"/>-->
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="loadImageList()">Close
+                </button>
+                <button id="clear-upload-history" type="button" class="btn btn-primary">Clear history</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--MoveTo Modal-->
+<%- include component/move_to.ejs %>
+
+</body>
+
+</html>

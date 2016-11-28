@@ -1,0 +1,31 @@
+[
+  {"title": "Fruit", "path":"/testpath","expanded": true, "folder": true, "children": [
+    {"title": "Tropical Fruits", "folder": true, "children": [
+      {"title": "Australian","folder": true, "children": [
+        {"title": "Organic", "folder": true,"children": [
+          {"title": "Avocados"},
+          {"title": "Coconut"},
+          {"title": "Bananas"},
+          {"title": "Dates"},
+          {"title": "Guavas"},
+          {"title": "Mangoes"},
+          {"title": "Papayas"}
+        ]},
+        {"title": "Non-organic", "folder": true,"children": [
+          {"title": "Pineapples", "lazy": true},
+          {"title": "Kiwi", "lazy": true}
+        ]}
+      ]}
+    ]},
+    {"title": "Berries", "expanded": true, "folder": true, "children": [
+      {"title": "Australian", "folder": true,"children": [
+        {"title": "Blackberries"},
+        {"title": "Cranberries"},
+        {"title": "Blueberries"},
+        {"title": "BlackRaspberries"},
+        {"title": "RedRaspberries"},
+        {"title": "Strawberries"}
+      ]}
+    ]}
+  ]}
+]
