@@ -1,15 +1,24 @@
 var mysql = require('mysql');
 
-// config/database.js
-var dbconfig = {
-    'connection': {
-        'host': 'database host',
-        'user': 'username',
-        'password': 'password'
-    },
-    'database': 'image_management'
-};
-var connection = mysql.createConnection(dbconfig.connection);
-connection.query('USE ' + dbconfig.database);
+var db    = {};
+var mysql = require('mysql');
+var pool  = mysql.createPool({
+    connectionLimit : 400,
+    host            : 'localhost',
+    database        : 'image_management',
+    user            : 'input your username',
+    password        : 'input your password'
+});
 
-module.exports = connection;
+//get connection from the pool
+db.getConnection = function(callback){
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            callback(null);
+            return;
+        }
+        callback(connection);
+    });
+};
+
+module.exports = db;

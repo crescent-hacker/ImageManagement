@@ -37,7 +37,7 @@ span.fancytree-title {
 
 .side-nav {
     /*overflow-y: hidden;*/
-    min-width: 225px;
+    min-width: 250px;
     max-width: 400px;
 }
 
@@ -56,9 +56,22 @@ hr.grey-line {
 
 .tree-title {
     color: #f9f9f9;
-    font-size: 18px;
-    margin-left: 15px;
+    font-size: 13px;
+    margin-left: 0px;
     margin-bottom: 10px;
+}
+.tree-expand-operator{
+    color: #f9f9f9;
+    font-size: 13px;
+    margin:3px 0 0 8px;
+    padding:0;
+    cursor: pointer;
+}
+
+.fancytree-edit-input{
+    color:black;
+    padding:6px 2px 6px 2px;
+    height:20px;
 }
 
 

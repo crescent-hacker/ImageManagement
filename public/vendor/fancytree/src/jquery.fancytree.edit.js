@@ -68,7 +68,7 @@ $.ui.fancytree._FancytreeNodeClass.prototype.editStart = function(){
 
 	// Replace node with <input>
 	$input = $("<input />", {
-		"class": "fancytree-edit-input",
+		"class": "fancytree-edit-input form-control",
 		type: "text",
 		value: tree.options.escapeTitles ? eventData.orgTitle : unescapeHtml(eventData.orgTitle)
 	});
@@ -175,7 +175,8 @@ $.ui.fancytree._FancytreeNodeClass.prototype.editEnd = function(applyChanges, _e
 	// Set keyboard focus, even if setFocus() claims 'nothing to do'
 	$(tree.$container).focus();
 	eventData.input = null;
-	instOpts.close.call(node, {type: "close"}, eventData);
+	//TODO, temporarily comment
+	// instOpts.close.call(node, {type: "close"}, eventData);
 	return true;
 };
 

@@ -6,7 +6,7 @@ log4js.configure({
         {
             type: 'dateFile',
             absolute: true,
-            filename:  __dirname +'/logs/system-name',
+            filename:  __dirname +'/logs/food-detect',
             maxLogSize: 1024*1024,
             pattern: "-yyyy-MM-dd.log",
             alwaysIncludePattern: true,

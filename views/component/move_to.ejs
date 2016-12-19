@@ -10,10 +10,19 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-lg-2">
-                        <b>Current path:</b>&nbsp;&nbsp;
+                        <b>Current Path:</b>&nbsp;&nbsp;
                     </div>
                     <div class="col-lg-10">
                         <span id="moveto-current-path-filling" style="color: #a16510">/</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-2">
+                        <b>Selected:</b>&nbsp;&nbsp;
+                    </div>
+                    <div class="col-lg-10">
+                        <span id="selected-images-amount" style="color: #545454">/</span>
+                        <!--<span id="moveto-current-path-filling" style="color: #a16510">/</span>-->
                     </div>
                 </div>
                 <div class="row">
@@ -27,8 +36,9 @@
                 <div id="simple-tree" class="fancytree-colorize-hover fancytree-fade-expander white-bg-tree"></div>
             </div>
             <div class="modal-footer">
-                <button id="close-moveto-button" type="button" class="btn btn-default" data-dismiss="modal">Close
-                </button>
+                <button id="expand-all-simple-tree-button" type="button" class="btn btn-success">Expand all</button>
+                <button id="collapse-all-simple-tree-button" type="button" class="btn btn-warning">Collapse all</button>
+                <button id="close-moveto-button" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 <button id="confirm-moveto-button" type="button" data-dismiss="modal" class="btn btn-primary">Confirm</button>
             </div>
         </div>

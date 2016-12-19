@@ -1,1 +1,1 @@
-[ {"title": "Demo Sub item"}, {"title": " Demo Sub folder", "folder": true, "lazy": true } ]
+[ {"title": "Demo Sub item"}, {"title": " Demo Sub folder", "folder": true, "lazy": false } ]

@@ -6,12 +6,12 @@ $(document).ready(function(){
     //toggle sidebar
     $("#sidebar-toggle-button").on("click",function(){
         var left = $("#resize-nav-bar").css("left");
-        if(left != "0px"){
-            $("#resize-nav-bar").css("left","0px");
-            $("#wrapper").css("padding-left", 0);
+        if(left.substring(0,left.length-2) > 0){
+            $("#resize-nav-bar").css("left",-$("#resize-nav-bar").width()+"px");
+            $(".wrapper").css("padding-left", 0);
         }else{
-            $("#resize-nav-bar").css("left","225px");
-            $("#wrapper").css("padding-left", $("#resize-nav-bar").width());
+            $("#resize-nav-bar").css("left",$("#resize-nav-bar").width()+"px");
+            $(".wrapper").css("padding-left", $("#resize-nav-bar").width());
         }
     })
 });

@@ -20,15 +20,30 @@
 
 <body page="trash">
 
-<div id="wrapper">
+<div class="wrapper">
 
     <div id="page-wrapper">
         <!-- Navigation -->
         <%- include component/navigation.ejs %>
         <!-- sidebar -->
-        <%- include component/tree.ejs %>
-        <div class="container-fluid">
+        <%- include component/tree_header.ejs %>
+        <div id="resize-nav-bar" class="nav navbar-nav side-nav">
+            <div id="tree-header">
+                <br>
+                <div class="row">
+                    <div class="col-lg-8 col-md-8">
+                        <span class="tree-title">Directory tree</span>
+                    </div>
+                    <div id="expand-all-button" class="col-lg-1 col-md-1 tree-expand-operator"><span class="glyphicon glyphicon-plus"></span></div>
+                    <div id="collapse-all-button" class="col-lg-1 col-md-1 tree-expand-operator"><span class="glyphicon glyphicon-minus"></span></div>
+                </div>
+                <hr class="grey-line">
+            </div>
+            <div id="tree" class="fancytree-colorize-hover fancytree-fade-expander"></div>
+        </div>
 
+        <!--main container-->
+        <div class="container-fluid">
             <!-- Page Heading -->
             <div class="row">
                 <div class="col-lg-12">

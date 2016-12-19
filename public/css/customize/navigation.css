@@ -10,10 +10,13 @@
     background-color: black;
 }
 .side-nav {
-    /*transition: all 0.1s ease-in-out 0.1s;*/
+    outline:none;border-color:rgba(99,99,109,.75);
+    box-shadow:0 0 8px rgba(99,99,99,.5);
+    -moz-box-shadow:0 0 8px rgba(99,99,99,.5);
+    -webkit-box-shadow:1px 1px 8px rgba(99,99,99,3);
 }
-#wrapper{
-    /*transition: all 0.1s ease-in-out 0.1s;*/
+.wrapper{
+    /*transition: all 0.4s ease-in-out 0.1s;*/
 }
 #sidebar-toggle-button{
     cursor: pointer;

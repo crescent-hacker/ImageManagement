@@ -19,27 +19,35 @@ var glyph_opts = {
         loading: "glyphicon glyphicon-refresh glyphicon-spin"
     }
 };
+var tree = null;
 
 //init
 $(function () {
-    //init directory tree
-    simpleTreeInit("tree");
-
+    //init sidebar tree
+    tree = simpleTreeInit("tree",function(path){
+        $("#current-path-showcase").html(path);
+    });
+    var sidebar = $(".side-nav");
+    var wrapper = $(".wrapper");
     //set action to resize event of sidebar
     $("#resize-nav-bar").resizable({
         resize: function (event, ui) {
             var width = ui.size.width;
-            var min_width = parseInt($(".side-nav").css("min-width").replace("px", ""));
-            var max_width = parseInt($(".side-nav").css("max-width").replace("px", ""));
+            var min_width = parseInt(sidebar.css("min-width").replace("px", ""));
+            var max_width = parseInt(sidebar.css("max-width").replace("px", ""));
             if (width > max_width)
                 width = max_width;
             if (width < min_width)
                 width = min_width;
-            $("#wrapper").css("padding-left", width);
+            wrapper.css("padding-left", width);
         },
         handles: 'e, w'
     });
-
+    //resize-nav-bar height setting
+    if ($(window).width() < 742) {
+        $("#resize-nav-bar").css("z-index", 9999);
+        $("#resize-nav-bar").css("height", $(window).height());
+    }
     //set sidebar height
     var sidebar_height = $("#resize-nav-bar").height() - $("#tree-header").height() - parseInt($("#tree").css("margin-top").replace("px", ""));
     $(".fancytree-container").height(sidebar_height);
@@ -75,22 +83,27 @@ $(function () {
 
     //moveto button binding
     $("#move-to-button").on("click", function () {
-        simpleTreeInit("simple-tree");
+        simpleTreeInit("simple-tree",function(path){
+            $("#moveto-target-path-filling").html(path);
+        });
     });
 
     //load images
     loadTrashList();
-
-    //load image list when resize window
-    $(window).resize(function () {
-        loadTrashList();
-    });
 
     //put back button
     $("#put-back-button").on("click", putBack);
 
     //destroy button
     $("#destroy-button").on("click",destroyImages);
+
+    //expand operation
+    $("#expand-all-button").on("click", function () {
+        nodeExpandOperation("tree", true);
+    });
+    $("#collapse-all-button").on("click", function () {
+        nodeExpandOperation("tree", false);
+    });
 });
 
 
@@ -212,10 +225,16 @@ function destroyImages() {
 }
 
 //simple tree initializer
-function simpleTreeInit(id) {
+function simpleTreeInit(id,activateExtend) {
     $("#" + id).fancytree({
-        extensions: ["dnd", "edit", "glyph", "wide"],
+        extensions: ["dnd", "edit", "glyph"],
+        autoScroll: true, // Automatically scroll nodes into visible area
         checkbox: false,
+        titlesTabbable: true,     // Add all node titles to TAB chain
+        keyPathSeparator: "/",
+        generateIds: true, // Generate id attributes like <span id='fancytree-id-KEY'>
+        idPrefix: "fd-", // Used to generate node id´s like <span id='fancytree-id-<key>'>
+        quicksearch: true,        // Jump to nodes when pressing first character
         dnd: {
             focusOnClick: true,
             dragStart: function (node, data) {
@@ -225,18 +244,13 @@ function simpleTreeInit(id) {
                 return false;
             },
             dragDrop: function (node, data) {
-                data.otherNode.copyTo(node, data.hitMode);
+                // data.otherNode.copyTo(node, data.hitMode);
             }
         },
         glyph: glyph_opts,
         selectMode: 2,
-        source: {url: "ajax-tree-taxonomy.json", debugDelay: 1000},
-        toggleEffect: {effect: "drop", options: {direction: "left"}, duration: 400},
-        wide: {
-            iconWidth: "1em",     // Adjust this if @fancy-icon-width != "16px"
-            iconSpacing: "0.5em", // Adjust this if @fancy-icon-spacing != "3px"
-            levelOfs: "1.5em"     // Adjust this if ul padding != "16px"
-        },
+        source: {url: "getDirTree.json", debugDelay: 1000},
+        toggleEffect: {effect: "drop", options: {direction: "right"}, duration: 400},
         activate: function (event, data) {
             var node = data.node;
             var fullPath = "";
@@ -245,21 +259,26 @@ function simpleTreeInit(id) {
                 node = node.parent;
             }
             fullPath = "/" + fullPath.substring(0, fullPath.length - 1);
-            if (id == "tree") {
-                $("#current-path-showcase").html(fullPath);
-                $("#moveto-current-path-filling").html(fullPath);
-            }else{
-                $("#moveto-target-path-filling").html(fullPath);
-            }
-
+            activateExtend(fullPath);
         },
         icon: function (event, data) {
             if (!data.node.isFolder()) {
-                return "glyphicon glyphicon-picture";
+                return "glyphicon glyphicon-briefcase";
             }
         },
         lazyLoad: function (event, data) {
             data.result = {url: "ajax-sub2.json", debugDelay: 1000};
         }
+    });
+}
+
+/**
+ *
+ * @param id - tree id
+ * @param mode - true~expand all; false~collpase all
+ */
+function nodeExpandOperation(id, mode) {
+    $("#" + id).fancytree("getRootNode").visit(function (node) {
+        node.setExpanded(mode);
     });
 }

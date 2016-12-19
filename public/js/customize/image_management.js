@@ -1,4 +1,4 @@
-<!-- Add code to initialize the tree when the document is loaded: -->
+/************************ global var **********************/
 var glyph_opts = {
     map: {
         // doc: "glyphicon glyphicon-file",
@@ -19,37 +19,62 @@ var glyph_opts = {
         loading: "glyphicon glyphicon-refresh glyphicon-spin"
     }
 };
-var CLIPBOARD = null;
 
-//init
+var im_var = {
+    CLIPBOARD: null,
+    tree: null,
+    active_path_id: null,
+    target_path_id: null,
+    sidebar_tree_name: "tree",
+    moveto_tree_name: "simple-tree"
+}
+
+/************************ initialize **********************/
 $(function () {
     //init directory tree
-    complexTreeInit("tree");
-
+    im_var.tree = simpleTreeInit(im_var.sidebar_tree_name, true, false);
+    // im_var.tree = complexTreeInit(sidebar_tree_name);
+    var sidebar = $(".side-nav");
+    var wrapper = $(".wrapper");
     //set action to resize event of sidebar
     $("#resize-nav-bar").resizable({
         resize: function (event, ui) {
             var width = ui.size.width;
-            var min_width = parseInt($(".side-nav").css("min-width").replace("px", ""));
-            var max_width = parseInt($(".side-nav").css("max-width").replace("px", ""));
+            var min_width = parseInt(sidebar.css("min-width").replace("px", ""));
+            var max_width = parseInt(sidebar.css("max-width").replace("px", ""));
             if (width > max_width)
                 width = max_width;
             if (width < min_width)
                 width = min_width;
-            $("#wrapper").css("padding-left", width);
+            wrapper.css("padding-left", width);
+            sidebar.css("left", sidebar.css("width"));
+            sidebar.css("margin-left", "-" + sidebar.css("width"));
         },
         handles: 'e, w'
     });
     //resize-nav-bar height setting
-    if($(window).width()<742){
-        $("#resize-nav-bar").css("z-index",9999);
-        $("#resize-nav-bar").css("height",$(window).height());
-
+    if ($(window).width() < 742) {
+        $("#resize-nav-bar").css("z-index", 9999);
+        $("#resize-nav-bar").css("height", $(window).height());
     }
     //set sidebar height
-    var sidebar_height = $("#resize-nav-bar").height() - $("#tree-header").height() - parseInt($("#tree").css("margin-top").replace("px", ""));
+    var sidebar_height = $("#resize-nav-bar").height() - $("#tree-header").height() - parseInt($("#" + im_var.sidebar_tree_name).css("margin-top").replace("px", ""));
     $(".fancytree-container").height(sidebar_height);
 
+    //initilise photo-gallery plugin
+    $(document).on('click', '[data-toggle="lightbox"]', function (event) {
+        event.preventDefault();
+        $(this).ekkoLightbox({
+            onShown: function () {
+                console.log('Checking our the events huh?');
+            },
+            onNavigate: function (direction, itemIndex) {
+                console.log('Navigating ' + direction + '. Current item: ' + itemIndex);
+            }
+        });
+    });
+
+    /***************** button bindings ******************/
     //check-all button binding
     $("#check-all-button").on("click", function () {
         var check_div = $(".image-check");
@@ -68,56 +93,148 @@ $(function () {
 
     //clear upload history
     $("#clear-upload-history").on("click", function () {
-        $(".dropzone").removeClass("dz-started");
+        $(".zone").removeClass("dz-started");
         $(".dz-complete").remove();
-    });
-
-    //upload button onclick binding
-    $("#upload-button").on("click", function () {
-        var upload_path = $(".fancytree-active").find(".fancytree-title").html();
-        $("#upload-path-filling").html(upload_path);
-    });
-    $("#upload-modal").on("blur",loadImageList);
-
-    //initilise photo-gallery plugin
-    $(document).on('click', '[data-toggle="lightbox"]', function (event) {
-        event.preventDefault();
-        $(this).ekkoLightbox({
-            onShown: function () {
-                console.log('Checking our the events huh?');
-            },
-            onNavigate: function (direction, itemIndex) {
-                console.log('Navigating ' + direction + '. Current item: ' + itemIndex);
-            }
-        });
+        $(".dz-image-preview").remove();
     });
 
     //moveto button binding
     $("#move-to-button").on("click", function () {
-        simpleTreeInit("simple-tree");
+        var chekcedImage = $(".glyphicon-check");
+        $("#selected-images-amount").html(chekcedImage.length - 1 + " images");
+        simpleTreeInit(im_var.moveto_tree_name, false, true);
     });
 
-    //load images
-    loadImageList();
+    // $("#close-moveto-button").on("click", loadImageList);
 
-    //load image list when resize window
-    $(window).resize(function () {
-        loadImageList();
-    });
-    $("#close-moveto-button").on("click", loadImageList);
-
-    //move to trash button
     $("#move-trash-button").on("click", moveToTrash);
 
+    $("#expand-all-button").on("click", function () {
+        nodeExpandOperation(im_var.sidebar_tree_name, true);
+    });
+    $("#collapse-all-button").on("click", function () {
+        nodeExpandOperation(im_var.sidebar_tree_name, false);
+    });
+    $("#expand-all-simple-tree-button").on("click", function () {
+        nodeExpandOperation(im_var.moveto_tree_name, true);
+    });
+    $("#collapse-all-simple-tree-button").on("click", function () {
+        nodeExpandOperation(im_var.moveto_tree_name, false);
+    });
+    $("#refresh-button").on("click", function () {
+        refresh();
+    });
+    $("#edit-tree-button").on("click", function () {
+        treeEditModeSwitcher(im_var.sidebar_tree_name, true);
+        $("#view-tree-button").removeClass("hidden");
+        $("#edit-tree-button").addClass("hidden");
+    });
+    $("#view-tree-button").on("click", function () {
+        treeEditModeSwitcher(im_var.sidebar_tree_name, false);
+        $("#view-tree-button").addClass("hidden");
+        $("#edit-tree-button").removeClass("hidden");
+    });
+
+    $("#upload-button").on("click", function () {
+        var fail = function () {
+            popAlert({
+                title: "<span style='color: #a94442;'>Upload failed</span>",
+                content: "Please select a bottom directory before upload.",
+                needConfirm: false
+            })
+        };
+
+        var path_id = im_var.active_path_id;
+        if (!path_id)
+            fail();
+        checkLeave(path_id, function () {
+            $("#upload-modal").modal();
+        }, fail);
+    })
+
+    $("#download-button").on("click", function () {
+        download();
+    })
+
+    $("#confirm-moveto-button").on("click", function () {
+        moveToPath();
+    });
+
+    //sort related button binding
+    var sortButtonFunc = function () {
+        //get current order type
+        var orderType = $(this).data("order-type");
+        //clear other sort type data
+        $("button[name='sort-button']").find("span").attr("class", "");
+        $("button[name='sort-button']").data("order-type", 0);
+        $("button[name='sort-button']").removeClass("active");
+        //set this button's style
+        if (orderType != 2)
+            $(this).addClass("active");
+        //set the next sort type of the button
+        var nextType = (orderType + 1) % 3;
+        $(this).data("order-type", nextType);
+        var cssClass = common_var.order_type[nextType].class;
+        $(this).find("span").attr("class", cssClass);
+        //call load image
+        loadImageList();
+    };
+    $("#date-sort-button").on("click", sortButtonFunc);
+    $("#name-sort-button").on("click", sortButtonFunc);
+    $("#size-sort-button").on("click", sortButtonFunc);
+
+    /************ search related *********/
+    $("#search-button").on("click", loadImageList);
     //complete search
     var searchKey = $.getUrlParam('search_key');
-    $("#search-input").val(searchKey);
-    $("#search-button").click();
+    if (!!searchKey && searchKey != "") {
+        $("#search-input").val(searchKey);
+        $("#search-button").click();
+    }
+    //bind enter in search input
+    $("#search-input").on("keyup", function (event) {
+        if (event.key == "Enter")
+            $("#search-button").click();
+    });
+
+    /*********** run loading ****************/
+    //load images
+    setTimeout(loadImageList, 0);
+
+    /************ dropzone config ************/
+    $("#dropzone").dropzone({
+        url: "upload",
+        addRemoveLinks: true,
+        autoProcessQueue: false,
+        dictRemoveFile: "Remove",
+        dictCancelUpload: "Cancel",
+        maxFiles: 1000,
+        maxFilesize: 5,
+        parallelUploads: 1000,
+        acceptedFiles: ".jpg,.png,.bmp,.jpeg",
+        init: function () {
+            this.on("success", function (file) {
+                console.log("File " + file.name + " uploaded")
+            });
+            this.on("removedfile", function (file) {
+                console.log("File " + file.name + " removed");
+            });
+            var myDropZone = this;
+            $("#confirm-upload").on("click", function () {
+                myDropZone.processQueue();
+                $(".dz-remove").remove();
+            });
+            myDropZone.on("queuecomplete", function () {
+                refresh(null, loadImageList);
+            });
+        }
+    });
 });
 
-
+/************************ image related operations **********************/
 //load image list
 function loadImageList() {
+    //compatible to diff window size
     var winWidth = $(window).width();
     var titleLimit = 10;
     var titleWidth = "col-lg-9";
@@ -126,60 +243,63 @@ function loadImageList() {
         titleLimit = 8;
     }
     if (winWidth > 1600) {
-        var titleWidth = "col-lg-10";
-        var checkboxWidth = "col-lg-2";
+        titleWidth = "col-lg-10";
+        checkboxWidth = "col-lg-2";
         titleLimit = 16;
     }
+    //post req
     $.ajax({
-        type: "get",
+        type: "post",
         url: "get-image-list.json",
         dataType: "json",
+        data: {
+            dirId: im_var.active_path_id,
+            sortType: common_var.sort_type[$("button[name='sort-button'].active").data("sort-type")],
+            orderType: $("button[name='sort-button'].active").data("order-type"),
+            searchKey: $("#search-input").val()
+        },
         success: function (data) {
             if (data.success) {
                 //show image list
-                var thumbnailList = data.thumbnailList;
-                var imageList = data.imageList;
-                var imageNames = data.imageNames;
+                var imageList = data.list;
                 $("#image-list").html("");
-                $.each(thumbnailList, function (idx, elem) {
-                    var name = imageNames[idx];
-                    if (imageNames[idx].length > titleLimit) {
-                        name = imageNames[idx].substring(0, titleLimit + 1) + "...";
+                $.each(imageList, function (idx, elem) {
+                    var name = elem.img_name;
+                    if (name.length > titleLimit) {
+                        name = name.substring(0, titleLimit + 1) + "...";
                     }
-                    var html = '<div class="col-lg-2 col-md-3"><div class="card"><div class="card-image"><a href="' + imageList[idx] + '" data-toggle="lightbox"><img class="img-responsive" src="' + thumbnailList[idx] + '"></a> </div>             ' +
-                        '<div class="card-content row"><div class="col-lg-12 col-md-12"><div class="' + titleWidth + ' col-md-8 col-xs-10"><span class="card-title" data-toggle="tooltip" title="' + imageNames[idx] + '">' + name + '</span></div><div class="' + checkboxWidth + ' col-md-4 col-md-2 no-padding"><span class="image-check glyphicon glyphicon-unchecked" aria-hidden="true" status="0"></span></div></div></div>'
-                    '</div> </div>';
+                    var tooltip = "<p align='left'><br>title:&nbsp;&nbsp;<span class='tooltip-field-title'>"+elem.img_name+"</span><br>"+
+                            "path:&nbsp;&nbsp;<span class='tooltip-field-title'>"+elem.path.substring(0,elem.path.length-1)+"</span><br>"+
+                            "modified date:&nbsp;&nbsp;<span class='tooltip-field-title'>"+elem.oper_date.substring(0,10)+"</span><br>"+
+                            "type:&nbsp;&nbsp;<span class='tooltip-field-title'>"+elem.format.substring(1)+"</span><br>"+
+                            "size:&nbsp;&nbsp;<span class='tooltip-field-title'>"+elem.size+" MB</span></p>";
+                    var html = '<li class="col-lg-2 col-md-3" style="list-style: none"><div class="card"><div class="card-image"><img class="img-responsive lazy" onerror="this.src=placeholder.getData({color:\'#fff\',text: \'Image 404\',size:\'555x300\'})" data-original="' + elem.url + '" data-original-thumbnail="' + elem.thumbnail_url + '" alt="' + elem.img_name + '"></a></div><div class="card-content row"><div class="col-lg-12 col-md-12"><div class="card-title-wrapper ' + titleWidth + ' col-md-8 col-xs-10"><span class="card-title" data-html="true" id=' + elem.id + ' data-toggle="tooltip" data-title="'+elem.img_name+'" title="'+tooltip+'">' + name + '</span></div><div class="' + checkboxWidth + ' col-md-4 col-md-2 no-padding"><span class="image-check glyphicon glyphicon-unchecked" aria-hidden="true" id=' + elem.id + ' status="0"></span></div></div></div></div></li>';
+                    // var html =
+                    //     '<li class="col-lg-2 col-md-3" style="list-style: none"><div class="card"><div class="card-image">' +
+                    //     '<img class="img-responsive lazy" onerror="this.src=placeholder.getData({color:\'#fff\',text: \'Image 404\',size:\'555x300\'})" data-original="' + elem.url + '" data-original-thumbnail="' + elem.thumbnail_url + '" alt="' + elem.img_name + '"></a> ' +
+                    //     '</div>' +
+                    //     '<div class="card-content row">' +
+                    //     '<div class="col-lg-12 col-md-12">' +
+                    //     '<div class="' + titleWidth + ' col-md-8 col-xs-10">' +
+                    //     '<span class="card-title" data-html="true" id=' + elem.id + ' data-toggle="tooltip" data-title="'+elem.img_name+'" title="'+tooltip+'">' + name + '</span>' +
+                    //     '</div>' +
+                    //     '<div class="' + checkboxWidth + ' col-md-4 col-md-2 no-padding">' +
+                    //     '<span class="image-check glyphicon glyphicon-unchecked" aria-hidden="true" id=' + elem.id + ' status="0"></span>' +
+                    //     '</div>' +
+                    //     '</div>' +
+                    //     '</div>' +
+                    //     '</div>' +
+                    //     ' </li>';
                     $("#image-list").append(html);
                 });
+                viewer_init();
+                $("img.lazy").lazyload({
+                    effect: "fadeIn",
+                    threshold : 200
+                });
                 //edit name binding
-                $(".card-title").on("dblclick", function () {
-                    //tool method
-                    function editName(titleLimit, div) {
-                        var edit_html = $("#edit-title").val();
-                        div.attr("data-original-title", edit_html);
-                        if (edit_html.length > titleLimit)
-                            div.html(edit_html.substring(0, titleLimit + 1) + "...");
-                        else
-                            div.html(edit_html);
-                    }
-
-                    //concat edit-title html
-                    var html = "<input type='text' id='edit-title' class='edit-title-input form-control' value='" + $(this).attr("data-original-title") + "'/>"
-                    var div = $(this);
-                    div.html(html);
-                    $("#edit-title").focus();
-                    $("#edit-title").on("blur", function () {
-                        editName(titleLimit, div)
-                    });
-                    $("#edit-title").on("dblclick", function () {
-                        return false;
-                    });
-                    $("#edit-title").on("keyup", function (e) {
-                        if (e.keyCode == '13') {
-                            editName(titleLimit, div);
-                        }
-                        return false;
-                    });
+                $(".card-title-wrapper").on("dblclick", function () {
+                    renameImg($(this).find(".card-title"));
                 });
                 //checkbox binding
                 $(".image-check").on("click", function () {
@@ -207,93 +327,248 @@ function loadImageList() {
 
 //move images to trash
 function moveToTrash() {
-    var chekcedImage = $(".glyphicon-check");
-    var imageIds = "";
-    $.each(chekcedImage, function (idx, data) {
-        if ($(data).attr("status") == "1") {
-            imageIds+=$(data).parent().parent().find(".card-title").attr("data-original-title")+"|";
+    var checkedImage = $(".glyphicon-check");
+    //verification
+    if (checkedImage.length == 1) {
+        popAlert({
+            title: "<span style='color: #a94442;'>Move to trash failed</span>",
+            content: "There is no image has been selected.",
+            needConfirm: false
+        })
+        return;
+    }
+
+    //delete confirmation
+    popAlert({
+        title: "<span style='color: #dc4154;'>Confirmation of deletion </span>",
+        content: "Are you sure you want to delete the selected " + (checkedImage.length - 1) + " images?",
+        needConfirm: true,
+        needFooter: true,
+        callback: function () {
+            var imageIds = "";
+            $.each(checkedImage, function (idx, data) {
+                if ($(data).attr("status") == "1") {
+                    imageIds += $(data).parent().parent().find(".card-title").attr("id") + "|";
+                }
+            });
+            if (imageIds != "")
+                imageIds = imageIds.substring(0, imageIds.length - 1);
+            //post req
+            $.ajax({
+                type: "post",
+                url: "moveToTrash",
+                data: {
+                    imageIds: imageIds
+                },
+                dataType: "json",
+                success: function (data) {
+                    if (data.success) {
+                        refresh(null, loadImageList);
+                    } else {
+                        popAlert({
+                            title: "<span style='color: #a94442;'>Move to trash failed</span>",
+                            content: "Delete error.",
+                            needConfirm: false
+                        })
+                    }
+                },
+                error: function (err) {
+                    console.error("moveToTrasht error!!!" + err);
+                }
+            });
         }
     });
-    if(imageIds!="")
-        imageIds = imageIds.substring(0,imageIds.length-1);
+}
+
+//move selected image to path
+function moveToPath() {
+    var checkedImage = $(".glyphicon-check");
+    //verification
+    if (checkedImage.length == 1) {
+        popAlert({
+            title: "<span style='color: #a94442;'>Move to path failed</span>",
+            content: "There is no image has been selected.",
+            needConfirm: false
+        })
+        return;
+    }
+    if (im_var.target_path_id == im_var.active_path_id) {
+        popAlert({
+            title: "<span style='color: #a94442;'>Move to path failed</span>",
+            content: "Please select a target category different from current category.",
+            needConfirm: false
+        })
+        return;
+    }
+    //get image ids
+    var imageIds = "";
+    $.each(checkedImage, function (idx, data) {
+        if ($(data).attr("status") == "1") {
+            imageIds += $(data).parent().parent().find(".card-title").attr("id") + "|";
+        }
+    });
+    if (imageIds != "")
+        imageIds = imageIds.substring(0, imageIds.length - 1);
+
     //post req
     $.ajax({
         type: "post",
-        url: "moveToTrash",
-        data:{
-            imageIds:imageIds
+        url: "moveToPath",
+        data: {
+            imageIds: imageIds,
+            targetId: im_var.target_path_id
         },
         dataType: "json",
         success: function (data) {
-            if(data.success)
-                loadImageList()
+            if (data.success) {
+                refresh(im_var.target_path_id, loadImageList);
+            } else {
+                popAlert({
+                    title: "<span style='color: #a94442;'>Move to path failed</span>",
+                    content: data.err_msg,
+                    needConfirm: false
+                })
+            }
         },
         error: function (err) {
-            console.error("moveToTrasht error!!!" + err);
-        }
-    })
-}
-
-//simple tree initializer
-function simpleTreeInit(id) {
-    $("#" + id).fancytree({
-        extensions: ["dnd", "edit", "glyph", "wide"],
-        checkbox: false,
-        dnd: {
-            focusOnClick: true,
-            dragStart: function (node, data) {
-                return true;
-            },
-            dragEnter: function (node, data) {
-                return false;
-            },
-            dragDrop: function (node, data) {
-                data.otherNode.copyTo(node, data.hitMode);
-            }
-        },
-        glyph: glyph_opts,
-        selectMode: 2,
-        source: {url: "ajax-tree-taxonomy.json", debugDelay: 1000},
-        toggleEffect: {effect: "drop", options: {direction: "left"}, duration: 400},
-        wide: {
-            iconWidth: "1em",     // Adjust this if @fancy-icon-width != "16px"
-            iconSpacing: "0.5em", // Adjust this if @fancy-icon-spacing != "3px"
-            levelOfs: "1.5em"     // Adjust this if ul padding != "16px"
-        },
-        activate: function (event, data) {
-            var node = data.node;
-            var fullPath = "";
-            while (node.parent != null) {
-                fullPath = node.title + "/" + fullPath;
-                node = node.parent;
-            }
-            fullPath = "/" + fullPath.substring(0, fullPath.length - 1);
-
-            $("#moveto-target-path-filling").html(fullPath);
-
-        },
-        icon: function (event, data) {
-            if (!data.node.isFolder()) {
-                return "glyphicon glyphicon-picture";
-            }
-        },
-        lazyLoad: function (event, data) {
-            data.result = {url: "ajax-sub2.json", debugDelay: 1000};
+            console.error("moveToTrash error!!!" + err);
         }
     });
 }
 
+function renameImg(targetDiv) {
+    //tool method
+    function editImgName(div, oldName) {
+        var newName = $("#edit-title").val();
+        div.html(oldName);
+        if (newName == oldName) {
+            return;
+        }
+        $.ajax({
+            type: "post",
+            url: "renameImage",
+            data: {id: div.attr("id"), name: newName},
+            dataType: "json",
+            success: function (data) {
+                if (data.success) {
+                    loadImageList();
+                } else {
+                    console.error("rename error, the image name exists already under same dir!!!");
+                    popAlert({
+                        title: "<span style='color: #a94442;'>Rename image failed</span>",
+                        content: "The name has already been take under this category.",
+                        needConfirm: false
+                    });
+                    div.html(oldName);
+                }
+            },
+            error: function (err) {
+                console.error("renameImg error!!!", err);
+            }
+        });
+    }
+
+    //concat edit-title html
+    var oldName = targetDiv.attr("data-title");
+    var html = "<input type='text' id='edit-title' class='edit-title-input form-control' value='" + oldName + "'/>"
+    targetDiv.html(html);
+    $("#edit-title").focus();
+    $("#edit-title").on("blur", function () {
+        editImgName(targetDiv, oldName)
+    });
+    $("#edit-title").on("dblclick", function () {
+        return false;
+    });
+    $("#edit-title").on("keyup", function (e) {
+        if (e.keyCode == '13') {
+            editImgName(targetDiv, oldName);
+        }
+        return false;
+    });
+}
+
+
+/************************ tree related operations **********************/
+
+//simple tree initializer
+function simpleTreeInit(id, isActivateLoadImage, isMoveToTargetPath) {
+    $("#" + id).fancytree({
+            extensions: ["dnd", "glyph"],
+            checkbox: false,
+            dnd: {
+                focusOnClick: true,
+                dragStart: function (node, data) {
+                    return true;
+                },
+                dragEnter: function (node, data) {
+                    return false;
+                },
+                dragDrop: function (node, data) {
+                    // data.otherNode.copyTo(node, data.hitMode);
+                }
+            },
+            glyph: glyph_opts,
+            selectMode: 2,
+            source: {url: "getDirTree.json?isEdit=0"},
+            toggleEffect: {effect: "drop", options: {direction: "right"}, duration: 400},
+            activate: function (event, data) {
+                var node = data.node;
+                var oNodeKey = node.key; //original node key
+                //trace full path of node
+                var fullPath = "";
+                while (node.parent != null) {
+                    fullPath = node.title.substr(0, node.title.indexOf("&nbsp;&nbsp;")) + "/" + fullPath;
+                    node = node.parent;
+                }
+                fullPath = "/" + fullPath.substr(0, fullPath.length - 1);
+
+                //action according to config
+                if (isMoveToTargetPath) {
+                    $("#moveto-target-path-filling").html(fullPath);
+                    im_var.target_path_id = oNodeKey;
+                } else {
+                    im_var.active_path_id = oNodeKey;
+                    $("#upload-path-id").val(oNodeKey);
+                    $("#current-path-showcase").html(fullPath);
+                    $("#moveto-current-path-filling").html(fullPath);
+                    $("#upload-path-filling").html(fullPath);
+                    $("#upload-path").val(fullPath);
+                }
+
+                //clear search key and sort before loading image list under a path
+                if (isActivateLoadImage) {
+                    $("#search-input").val("");
+                    var activeSortButton = $("button[name='sort-button'].active");
+                    activeSortButton.find("span").attr("class", "");
+                    activeSortButton.removeClass("active");
+                    loadImageList();
+                }
+            },
+            icon: function (event, data) {
+                if (!data.node.isFolder()) {
+                    return "glyphicon glyphicon-briefcase";
+                }
+            }
+        }
+    )
+    ;
+    return $("#" + id).fancytree("getTree");
+}
 
 //complex tree init
 function complexTreeInit(id) {
     //Complex fancytree
     $("#" + id).fancytree({
+        autoScroll: true, // Automatically scroll nodes into visible area
         checkbox: false,
         titlesTabbable: true,     // Add all node titles to TAB chain
+        keyPathSeparator: "/",
+        generateIds: true, // Generate id attributes like <span id='fancytree-id-KEY'>
+        idPrefix: "fd-", // Used to generate node id´s like <span id='fancytree-id-<key>'>
         quicksearch: true,        // Jump to nodes when pressing first character
         // source: SOURCE,
-        source: {url: "ajax-tree-taxonomy.json"},
-
+        source: {url: "getDirTree.json?isEdit=1"},
+        // toggleEffect: {effect: "drop", options: {direction: "right"}, duration: 400},
         extensions: ["edit", "dnd", "glyph"],
 
         dnd: {
@@ -308,67 +583,78 @@ function complexTreeInit(id) {
                 return true;
             },
             dragDrop: function (node, data) {
-                data.otherNode.moveTo(node, data.hitMode);
+                // console.log(data.otherNode.title)
+                // console.log(data.node.title)
+                moveDir(data.node, data.otherNode, function () {
+                    data.otherNode.moveTo(node, data.hitMode);
+                });
             }
         },
         glyph: glyph_opts,
         edit: {
             triggerStart: ["f2", "shift+click", "mac+enter"],
-            close: function (event, data) {
-                if (data.save && data.isNew) {
-                    // Quick-enter: add new nodes until we hit [enter] on an empty title
-                    $("#" + id).trigger("nodeCommand", {cmd: "addSibling"});
-                }
+            adjustWidthOfs: 20,
+            beforeEdit: function (event, data) {
+                console.log("test");
+            },
+            beforeClose: function (event, data) {
+                console.log("test");
+            },
+            save: function (event, data) {
+                var tree = $("#" + id).fancytree("getTree");
+
+                // Save data.input.val() or return false to keep editor open
+                console.log("save...", this, data);
+                // Simulate to start a slow ajax request...
+                setTimeout(function () {
+                    // console.log(tree.getActiveNode().title);
+                    // console.log(data.node.title);
+                    // console.log(data.node.parent == tree.getActiveNode().parent);
+                    if (data.isNew) {
+                        if (data.node.parent == im_var.tree.getActiveNode().parent) {
+                            //1.addSibDir
+                            addSibDir(data.node);
+                        }
+                        else {
+                            //2.addChildDir
+                            addChildDir(im_var.tree.getActiveNode().key, data.node);
+                        }
+                    } else {
+                        //3.editDirName
+                        editDirName(data.node);
+                    }
+                }, 0);
+                // We return true, so ext-edit will set the current user input
+                // as title
+                return true;
+            },
+            edit: function (event, data) {
+                // Editor was opened (available as data.input)
+                // console.log(data.input);
             }
         },
         activate: function (event, data) {
-            var node = data.node;
-            var fullPath = "";
-            while (node.parent != null) {
-                fullPath = node.title + "/" + fullPath;
-                node = node.parent;
-            }
-            fullPath = "/" + fullPath.substring(0, fullPath.length - 1);
-
-            $("#current-path-showcase").html(fullPath);
-            $("#moveto-current-path-filling").html(fullPath);
-
+            // var node = data.node;
+            // var fullPath = "";
+            // while (node.parent != null) {
+            //     fullPath = node.title + "/" + fullPath;
+            //     node = node.parent;
+            // }
+            // fullPath = "/" + fullPath.substring(0, fullPath.length - 1);
+            //
+            // $("#current-path-showcase").html(fullPath);
+            // $("#moveto-current-path-filling").html(fullPath);
+            // $("#upload-path-filling").html(fullPath);
+            // $("#upload-path").html(fullPath);
         },
         lazyLoad: function (event, data) {
             data.result = {url: "ajax-sub2.json"};
         },
         createNode: function (event, data) {
-            var node = data.node,
-                $tdList = $(node.tr).find(">td");
-
-            // Span the remaining columns if it's a folder.
-            // We can do this in createNode instead of renderColumns, because
-            // the `isFolder` status is unlikely to change later
-            if (node.isFolder()) {
-                $tdList.eq(2)
-                    .prop("colspan", 6)
-                    .nextAll().remove();
-            }
         },
-        renderColumns: function (event, data) {
-            var node = data.node,
-                $tdList = $(node.tr).find(">td");
-
-            // (Index #0 is rendered by fancytree by adding the checkbox)
-            // Set column #1 info from node data:
-            $tdList.eq(1).text(node.getIndexHier());
-            // (Index #2 is rendered by fancytree)
-            // Set column #3 info from node data:
-            $tdList.eq(3).find("input").val(node.key);
-            $tdList.eq(4).find("input").val(node.data.foo);
-
-            // Static markup (more efficiently defined as html row template):
-            // $tdList.eq(3).html("<input type='input' value='" + "" + "'>");
-            // ...
-        },
-        icon:function(event,data){
+        icon: function (event, data) {
             if (!data.node.isFolder()) {
-                return "glyphicon glyphicon-picture";
+                return "glyphicon glyphicon-briefcase";
             }
         }
     }).on("nodeCommand", function (event, data) {
@@ -377,7 +663,6 @@ function complexTreeInit(id) {
         var refNode, moveMode,
             tree = $(this).fancytree("getTree"),
             node = tree.getActiveNode();
-
         switch (data.cmd) {
             case "moveUp":
                 refNode = node.getPrevSibling();
@@ -411,11 +696,15 @@ function complexTreeInit(id) {
                 node.editStart();
                 break;
             case "remove":
-                refNode = node.getNextSibling() || node.getPrevSibling() || node.getParent();
-                node.remove();
-                if (refNode) {
-                    refNode.setActive();
-                }
+                delDir(node
+                    //     , function(){
+                    //     refNode = node.getNextSibling() || node.getPrevSibling() || node.getParent();
+                    //     node.remove();
+                    //     if (refNode) {
+                    //         refNode.setActive();
+                    //     }
+                    // }
+                );
                 break;
             case "addChild":
                 node.editCreateNode("child", "");
@@ -424,27 +713,33 @@ function complexTreeInit(id) {
                 node.editCreateNode("after", "");
                 break;
             case "cut":
-                CLIPBOARD = {mode: data.cmd, data: node};
+                im_var.CLIPBOARD = {mode: data.cmd, data: node};
                 break;
-            case "copy":
-                CLIPBOARD = {
-                    mode: data.cmd,
-                    data: node.toDict(function (n) {
-                        delete n.key;
-                    })
-                };
-                break;
+            // case "copy":
+            //     im_var.CLIPBOARD = {
+            //         mode: data.cmd,
+            //         data: node.toDict(function (n) {
+            //             delete n.key;
+            //         })
+            //     };
+            //     break;
             case "clear":
-                CLIPBOARD = null;
+                im_var.CLIPBOARD = null;
                 break;
             case "paste":
-                if (CLIPBOARD.mode === "cut") {
+                if (im_var.CLIPBOARD.mode === "cut") {
                     // refNode = node.getPrevSibling();
-                    CLIPBOARD.data.moveTo(node, "child");
-                    CLIPBOARD.data.setActive();
-                } else if (CLIPBOARD.mode === "copy") {
-                    node.addChildren(CLIPBOARD.data).setActive();
+                    moveDir(node, im_var.CLIPBOARD.data, function () {
+                        im_var.CLIPBOARD.data.moveTo(node, "child");
+                        im_var.CLIPBOARD.data.setActive();
+                    });
+
                 }
+                // else if (im_var.CLIPBOARD.mode === "copy") {
+                //     copyDir(node,im_var.CLIPBOARD.data,function(){
+                //         node.addChildren(im_var.CLIPBOARD.data).setActive();
+                //     });
+                // }
                 break;
             default:
                 alert("Unhandled command: " + data.cmd);
@@ -483,9 +778,9 @@ function complexTreeInit(id) {
             case "meta+backspace": // mac
                 cmd = "remove";
                 break;
-            // case "f2":  // already triggered by ext-edit pluging
-            //   cmd = "rename";
-            //   break;
+            case "f2":  // already triggered by ext-edit pluging
+                cmd = "rename";
+                break;
             case "ctrl+up":
                 cmd = "moveUp";
                 break;
@@ -530,12 +825,12 @@ function complexTreeInit(id) {
             {title: "New child <kbd>[Ctrl+Shift+N]</kbd>", cmd: "addChild", uiIcon: "ui-icon-arrowreturn-1-e"},
             {title: "----"},
             {title: "Cut <kbd>Ctrl+X</kbd>", cmd: "cut", uiIcon: "ui-icon-scissors"},
-            {title: "Copy <kbd>Ctrl-C</kbd>", cmd: "copy", uiIcon: "ui-icon-copy"},
+            // {title: "Copy <kbd>Ctrl-C</kbd>", cmd: "copy", uiIcon: "ui-icon-copy"},
             {title: "Paste as child<kbd>Ctrl+V</kbd>", cmd: "paste", uiIcon: "ui-icon-clipboard", disabled: true}
         ],
         beforeOpen: function (event, ui) {
             var node = $.ui.fancytree.getNode(ui.target);
-            $("#" + id).contextmenu("enableEntry", "paste", !!CLIPBOARD);
+            $("#" + id).contextmenu("enableEntry", "paste", !!im_var.CLIPBOARD);
             node.setActive();
         },
         select: function (event, ui) {
@@ -547,4 +842,413 @@ function complexTreeInit(id) {
             }, 100);
         }
     });
+
+    return $("#" + id).fancytree("getTree");
 }
+
+/**
+ * expand operation switcher
+ * @param id - tree id
+ * @param mode - true~expand all; false~collpase all
+ */
+function nodeExpandOperation(id, mode) {
+    $("#" + id).fancytree("getRootNode").visit(function (node) {
+        node.setExpanded(mode);
+    });
+}
+
+/**
+ * tree editing switcher
+ * @param mode - true~edit mode; false~view mode
+ */
+function treeEditModeSwitcher(id, mode) {
+    $("#" + id).fancytree("destroy");
+
+    var title = "";
+    if (mode) {
+        title = $(".tree-title").html().replace("[View]", "[Edit]");
+        im_var.tree = complexTreeInit(id);
+        $(".container-fluid").block({
+            message: "",
+            overlayCSS: {
+                opacity: 0.3,
+                cursor: "no-drop"
+            }
+        });
+    } else {
+        $("#" + id).contextmenu('destroy');
+        title = $(".tree-title").html().replace("[Edit]", "[View]");
+        im_var.tree = simpleTreeInit(id, true, false);
+        $(".container-fluid").unblock();
+    }
+    $(".tree-title").html(title);
+
+}
+
+/************************** directory management ajax (related to tree operation)******/
+function addSibDir(node) {
+    console.log("addSibDir");
+    if (node.title.length <= 0)
+        return false;
+    var prevNode = im_var.tree.getActiveNode();
+    $.ajax({
+        type: "post",
+        url: "addDir",
+        data: {
+            parentId: node.parent.key,
+            title: node.title.trim()
+        },
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + data.insertId);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            } else {
+                console.error("addSibDir failed!!!");
+                popAlert({
+                    title: "<span style='color: #a94442;'>Add sibling directory failed</span>",
+                    content: "The sibling with the same name has already existed.",
+                    needConfirm: false
+                });
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + prevNode.key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            }
+        },
+        error: function (err) {
+            console.error("addSibDir error!!!", err);
+        }
+    });
+}
+function addChildDir(parentKey, node) {
+    console.log("addChildDir");
+    $.ajax({
+        type: "post",
+        url: "addDir",
+        data: {
+            parentId: parentKey,
+            title: node.title.trim()
+        },
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + data.insertId);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            } else {
+                console.error("addChildDir failed!!!");
+                popAlert({
+                    title: "<span style='color: #a94442;'>Add child directory failed</span>",
+                    content: "There are images under the selected directory; or the name has already been taken.",
+                    needConfirm: false
+                });
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + parentKey);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            }
+        },
+        error: function (err) {
+            console.error("addChildDir error!!!", err);
+        }
+    });
+}
+function editDirName(node) {
+    console.log("editDirName");
+    var key = '' + node.key;
+    $.ajax({
+        type: "post",
+        url: "editDirName",
+        data: {
+            id: node.key,
+            title: node.title.trim()
+        },
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey(key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            } else {
+                console.error("editDirName failed!!!");
+                popAlert({
+                    title: "<span style='color: #a94442;'>Edit name failed</span>",
+                    content: "The name has been taken under the current directory.",
+                    needConfirm: false
+                });
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            }
+        },
+        error: function (err) {
+            console.error("editDirName error!!!", err);
+        }
+    });
+}
+function moveDir(parentNode, curNode) {
+    $.ajax({
+        type: "post",
+        url: "moveDir",
+        data: {
+            parentId: parentNode.key,
+            id: curNode.key,
+            title: curNode.title
+        },
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + curNode.key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            } else {
+                console.error("moveDir failed!!!");
+                popAlert({
+                    title: "<span style='color: #a94442;'>Move directory failed</span>",
+                    content: "There are images under the target directory. You can only move the current directory to a directory without images in it.",
+                    needConfirm: false
+                });
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + curNode.key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            }
+        },
+        error: function (err) {
+            console.error("moveDir error!!!", err);
+        }
+    });
+}
+function delDir(node, done) {
+    var prevNode = node;
+    $.ajax({
+        type: "post",
+        url: "delDir",
+        data: {
+            id: node.key
+        },
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                im_var.tree.reload().then(function () {
+                    var node = im_var.tree.getNodeByKey('' + prevNode.parent.key);
+                    node.setActive(true);
+                    while (node.parent != null) {
+                        node.setExpanded(true);
+                        node = node.parent;
+                    }
+                });
+            } else {
+                console.error("delDir failed!!!");
+                popAlert({
+                    title: "<span style='color: #a94442;'>Delete directory failed</span>",
+                    content: "There are images under this directory.",
+                    needConfirm: false
+                });
+            }
+        },
+        error: function (err) {
+            console.error("delDir error!!!", err);
+        }
+    });
+}
+function getDirTree() {
+    $.ajax({
+        type: "get",
+        url: "getDirTree",
+        data: {},
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                //reload the im_var.tree and expand the previous node
+                console.log(data.dir_tree);
+            } else {
+                console.error("getDirTree failed!!!");
+            }
+        },
+        error: function (err) {
+            console.error("getDirTree error!!!", err);
+        }
+    });
+}
+function refresh(id, callback) {
+    $.ajax({
+        type: "get",
+        url: "refresh",
+        data: {},
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                var key;
+                if (!!im_var.tree.getActiveNode()) {
+                    key = im_var.tree.getActiveNode().key;
+                }
+                if (!!id) {
+                    key = id;
+                }
+                im_var.tree.reload().then(function () {
+                    if (!!key) {
+                        var node = im_var.tree.getNodeByKey('' + key);
+                        node.setActive(true);
+                        while (node.parent != null) {
+                            node.setExpanded(true);
+                            node = node.parent;
+                        }
+                    }
+                    if (!!callback)
+                        callback();
+                });
+            } else {
+                console.error("refresh failed!!!");
+            }
+        },
+        error: function (err) {
+            console.error("refresh error!!!", err);
+        }
+    });
+}
+function checkLeave(id, done, fail) {
+    $.ajax({
+        type: "post",
+        url: "checkLeave",
+        data: {id: id},
+        dataType: "json",
+        success: function (data) {
+            if (data.success) {
+                done();
+            } else {
+                console.error("Id " + id + " is not a leave, open upload modal failed!!!");
+                fail();
+            }
+        },
+        error: function (err) {
+            console.error("checkLeave error!!!", err);
+        }
+    });
+}
+function download() {
+    if (!im_var.active_path_id) {
+        popAlert({
+            title: "<span style='color: #a94442;'>Download failed</span>",
+            content: "Please select a directory before download.",
+            needConfirm: false
+        });
+    } else {
+        window.open("/download?id=" + im_var.active_path_id);
+    }
+}
+
+/*********************** image view plugin init ************************/
+function viewer_init() {
+
+    'use strict';
+
+    var console = window.console || {
+            log: function () {
+            }
+        };
+    var $images = $('#image-list');
+    $images.viewer('destroy');
+    var options = {
+        // inline: true,
+        url: 'data-original',
+        build: function (e) {
+            console.log(e.type);
+        },
+        built: function (e) {
+            console.log(e.type);
+        },
+        show: function (e) {
+            console.log(e.type);
+        },
+        shown: function (e) {
+            console.log(e.type);
+        },
+        hide: function (e) {
+            console.log(e.type);
+        },
+        hidden: function (e) {
+            console.log(e.type);
+        },
+        view: function (e) {
+            console.log(e.type);
+        },
+        viewed: function (e) {
+            console.log(e.type);
+        }
+    };
+
+    $images.on({
+        'build.viewer': function (e) {
+            console.log(e.type);
+        },
+        'built.viewer': function (e) {
+            console.log(e.type);
+        },
+        'show.viewer': function (e) {
+            console.log(e.type);
+        },
+        'shown.viewer': function (e) {
+            console.log(e.type);
+        },
+        'hide.viewer': function (e) {
+            console.log(e.type);
+        },
+        'hidden.viewer': function (e) {
+            console.log(e.type);
+        },
+        'view.viewer': function (e) {
+            console.log(e.type);
+        },
+        'viewed.viewer': function (e) {
+            console.log(e.type);
+        }
+    }).viewer(options);
+
+
+};
+

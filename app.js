@@ -4,10 +4,34 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session')({ secret: 'image management stefan ', resave: false, saveUninitialized: false,cookie: { maxAge: 60 * 10000 } });
+var login_validator = require('connect-ensure-login');
+var helmet = require('helmet');
 
-var page_router = require('./routes/router');
-var users_router = require('./routes/users');
+//user modules
+var user_dao = require('./dao/user_management_dao');
+var passport = require('passport');
+var Strategy = require('passport-local').Strategy;
+passport.use(new Strategy(
+    function(username, password, cb) {
+        user_dao.findByUsername(username, function(err, user) {
+        if (err) { return cb(err); }
+        if (!user) { return cb(null, false); }
+        if (user.password != password) { return cb(null, false); }
+        return cb(null, user);
+      });
+    }));
+passport.serializeUser(function(user, cb) {
+  cb(null, user.id);
+});
+passport.deserializeUser(function(id, cb) {
+    user_dao.findById(id, function (err, user) {
+    if (err) { return cb(err); }
+    cb(null, user);
+  });
+});
 
+//express
 var app = express();
 
 // view engine setup
@@ -22,9 +46,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'resource')));
+app.use(express.static(path.join(__dirname, 'bower_components')));
+app.use(session);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(helmet());
 
-app.use('/', page_router);
-app.use('/users', users_router);
+//routers
+var page_router = require('./routes/router');
+var users_router = require('./routes/users');
+page_router.init(app,session,passport,login_validator);
+users_router.init(app,session,passport,login_validator);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

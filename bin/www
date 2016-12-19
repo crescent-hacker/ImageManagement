@@ -81,7 +81,6 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
@@ -90,6 +89,10 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
+
+/**
+ * catch uncaught exceptions which will have a chance to crash the system
+ */
 process.on('uncaughtException', function (err) {
   logger.info(err);
   logger.info(err.stack);

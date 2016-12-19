@@ -25,6 +25,31 @@
     margin-top: 20px;
 }
 
-#current-path-showcase {
-    color: #545454;
+.path-color {
+    color: #ba910e;
+}
+
+.edit-title-input{
+    height:20px;
+    font-size:1em;
+}
+
+
+span.pending span.fancytree-title {
+    font-style: italic;
+}
+span.pending span.fancytree-title:after {
+    content: "\2026"; /* ellipsis */
+}
+
+.fancytree-expanded span.fancytree-expander{
+    color: #07df60 !important;
+}
+
+.wrapper{
+    padding-left:225px;
+}
+
+.white-bg-tree .fancytree-expanded span.fancytree-expander{
+    color: #2c2c2c !important;
 }

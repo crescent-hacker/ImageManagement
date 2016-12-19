@@ -1,0 +1,20 @@
+{
+  "name": "image-management",
+  "description": "front-end plugins management of image management system",
+  "main": "",
+  "authors": [
+    "stefan.chen <difan.chen@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "imageviewer": "^0.5.1"
+  }
+}

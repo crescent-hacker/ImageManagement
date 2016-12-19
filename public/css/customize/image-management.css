@@ -15,8 +15,12 @@
 
 /*rewrite boostrap*/
 @media (min-width: 768px) {
+    #alert-modal .modal-dialog{
+        width: 600px;
+        margin: 30px auto;
+    }
     .modal-dialog {
-        width: 910px;
+        width: 800px;
         margin: 30px auto;
     }
 }
@@ -25,11 +29,62 @@
     margin-top: 20px;
 }
 
-#current-path-showcase {
-    color: #545454;
+.path-color {
+    color: #9f7c0d;
 }
 
 .edit-title-input{
     height:20px;
     font-size:1em;
 }
+
+
+span.pending span.fancytree-title {
+    font-style: italic;
+}
+span.pending span.fancytree-title:after {
+    content: "\2026"; /* ellipsis */
+}
+
+.fancytree-expanded span.fancytree-expander{
+    color: #07df60 !important;
+}
+.white-bg-tree .fancytree-expanded span.fancytree-expander{
+    color: #2c2c2c !important;
+}
+
+.wrapper{
+    padding-left:250px;
+}
+
+.tooltip-inner {
+    max-width: 800px!important;
+    min-width:180px!important;
+}
+.tooltip-field-title{
+    color: #00e3ff;
+}
+
+
+::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+} /* 这是针对缺省样式 (必须的) */
+::-webkit-scrollbar-track {
+    background-color: #323232;
+} /* 滚动条的滑轨背景颜色 */
+
+::-webkit-scrollbar-thumb {
+    background-color: #a7a7a7;
+    /*background-color: #bb3c3c;*/
+    /*background-color: rgba(0, 0, 0, 0.6);*/
+    border-radius: 4px;
+} /* 滑块颜色 */
+
+::-webkit-scrollbar-button {
+    background-color: #7c2929;
+} /* 滑轨两头的监听按钮颜色 */
+
+::-webkit-scrollbar-corner {
+    background-color: black;
+} /* 横向滚动条和纵向滚动条相交处尖角的颜色 */
