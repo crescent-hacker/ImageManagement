@@ -25,4 +25,4 @@ bower install
 node bin/www
 ```
 
-<b>Now you can visit http://localhost:3000 in your browser to access the system.</b>
+Now you can visit http://localhost:3000 in your browser to access the system.
