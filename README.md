@@ -6,7 +6,7 @@ This is a image management system implemented by node.js + express + boostrap 3 
 <b>Account:</b> &nbsp;&nbsp;&nbsp;test/test
 
 ##Install
-<b>Import the mysql-create-db.sql script and run it after created a database in your mysql server.</b><br>
+Import the mysql-create-db.sql script and run it after created a database in your mysql server.<br>
 ```sh
 cd ImageManagement/
 ```
