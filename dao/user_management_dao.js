@@ -8,7 +8,7 @@ module.exports = dao;
 
 dao.findById = function(id, cb) {
     process.nextTick(function() {
-        //todo,数据库查询id
+        //todo,query user by id in database
         var idx = id - 1;
         if (records[idx]) {
             cb(null, records[idx]);
@@ -20,7 +20,7 @@ dao.findById = function(id, cb) {
 
 dao.findByUsername = function(username, cb) {
     process.nextTick(function() {
-        //todo,数据库查询name数据
+        //todo,query user by name in database
         for (var i = 0, len = records.length; i < len; i++) {
             var record = records[i];
             if (record.username === username) {
